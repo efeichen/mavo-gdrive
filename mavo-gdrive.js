@@ -1,17 +1,16 @@
 (function($, $$) {
-    Mavo.Backend.register($.Class({
+
+    var _ = Mavo.Backend.register($.Class({
         extends: Mavo.Backend,
         id: "Gdrive",
     
-        constructor: function(url, {mavo, format}) {
-            // Initialization code
+        constructor: function() {
+            console.log(this.mavo.id);
+            this.permissions.on(["login", "read"]); // Permissions of this particular backend.
     
-            // Already defined by the parent constructor:
-            this.source // Raw URL (attribute value)
-            this.url // URL object from this.source
-            this.mavo // Mavo instance
-            this.format // Current format
-            this.permissions // Permissions of this particular backend.
+            this.key = this.mavo.element.getAttribute("mv-gdrive-key") || "447389063766-ipvdoaoqdds9tlcmr8pjdo5oambcj7va.apps.googleusercontent.com";
+    
+            this.login(true);
         },
     
         // Low-level functions for reading data. You don’t need to implement this
@@ -52,23 +51,32 @@
         // the user is already logged in, but does not present any login UI.
         // Typically, you’d call this.login(true) in the constructor
         login: function(passive) {
-            // Typically, you’d check if a user is already authenticated
-            // and return Promise.resolve() if so.
+            return this.oAuthenticate(passive)
+                .then(() => this.getUser())
+                .then();
     
             // Returns promise that resolves when the user has successfully authenticated
         },
     
         // Log current user out
         logout: function() {
-            // Returns promise
+            return this.oAuthLogout();
         },
     
         static: {
+            apiDomain: "https://www.googleapis.com",
+            oAuth: "https://accounts.google.com/o/oauth2/v2/auth",
             // Mandatory and very important! This determines when your backend is used.
             // value: The mv-storage/mv-source/mv-init value
-            test: function(value) {
-                // Returns true if this value applies to this backend
+            test: function (url) {
+                if (url.indexOf("drive") !== -1) {
+                    return url;
+                } 
+                else {
+                    return false;
+                }
             }
         }
     }));
-})(Bliss, Bliss.$);
+    
+    })(Bliss, Bliss.$);
