@@ -6,7 +6,7 @@
     
         constructor: function() {
             console.log(this.mavo.id);
-            this.permissions.on(["login", "read"]); // Permissions of this particular backend.
+            this.permissions.on(["login", "read"]);
     
             this.key = this.mavo.element.getAttribute("mv-gdrive-key") || "447389063766-ipvdoaoqdds9tlcmr8pjdo5oambcj7va.apps.googleusercontent.com";
     
@@ -47,6 +47,8 @@
             // Should return a promise that resolves when the data is saved successfully
         },
     
+        oAuthParams: () => `&scope=https://www.googleapis.com/auth/drive&redirect_uri=${encodeURIComponent("http://localhost:8001")}&response_type=code`,
+
         // Takes care of authentication. If passive is true, only checks if
         // the user is already logged in, but does not present any login UI.
         // Typically, you’d call this.login(true) in the constructor
@@ -58,7 +60,6 @@
             // Returns promise that resolves when the user has successfully authenticated
         },
     
-        // Log current user out
         logout: function() {
             return this.oAuthLogout();
         },
@@ -71,7 +72,7 @@
             test: function (url) {
                 if (url.indexOf("drive") !== -1) {
                     return url;
-                } 
+                }
                 else {
                     return false;
                 }
