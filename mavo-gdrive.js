@@ -54,12 +54,15 @@ var _ = Mavo.Backend.register($.Class({
             return Promise.resolve(this.user);
         }
         
-        return this.request("about")
+        return this.request("drive/v3/about", {fields: "user"})
             .then(info => {
                 this.user = {
-
+                    username: info.user.emailAddress,
+                    name: info.user.displayName,
+                    avatar: info.user.photoLink,
+                    info
                 };
-
+                console.log(this.user);
                 $.fire(this.mavo.element, "mv-login", { backend: this });
             });
     },
@@ -70,9 +73,16 @@ var _ = Mavo.Backend.register($.Class({
     login: function(passive) {
         return this.oAuthenticate(passive)
             .then(() => this.getUser())
-            .then();
-
-        // Returns promise that resolves when the user has successfully authenticated
+            // .catch(xhr => {
+			// 	if (xhr.status == 401) {
+			// 		this.logout();
+			// 	}
+			// })
+            .then(u => {
+                if (this.user) {
+                    this.permissions.logout = true;
+                }
+            });
     },
 
     logout: function() {
@@ -80,7 +90,7 @@ var _ = Mavo.Backend.register($.Class({
     },
 
     static: {
-        apiDomain: "https://www.googleapis.com/drive/v3/",
+        apiDomain: "https://www.googleapis.com/",
         oAuth: "https://accounts.google.com/o/oauth2/v2/auth",
         // Mandatory and very important! This determines when your backend is used.
         // value: The mv-storage/mv-source/mv-init value
