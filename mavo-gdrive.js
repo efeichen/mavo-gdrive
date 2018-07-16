@@ -72,27 +72,27 @@ var _ = Mavo.Backend.register($.Class({
             .then(() => {
                 if (this.user) {
                     this.permissions.logout = true;
-                    return this.get();
-                }
-            })
-            .then(response => {
-                // Need to check if the user has edit permission to the storage file.
-                var fileMeta = response.files[0];
-                if (fileMeta === undefined) {
-                    this.request("drive/v3/files", {name: `${this.mavo.id}${this.extension}`}, "POST")
-                        .then(info => {
-                            console.log(info);
-                        })
-                        .catch(() => {
-                            console.log("NANI!?");
-                        });
-                }
-                else {
-                    this.load();
-                }
 
-                this.permissions.on(["edit", "save"]);
+                    this.permissions.on(["edit", "save"]);
+                }
             });
+            // .then(response => {
+            //     // Need to check if the user has edit permission to the storage file.
+            //     var fileMeta = response.files[0];
+            //     if (fileMeta === undefined) {
+            //         this.request("drive/v3/files", {name: `${this.mavo.id}${this.extension}`}, "POST")
+            //             .then(info => {
+            //                 console.log(info);
+            //             })
+            //             .catch(() => {
+            //                 console.log("NANI!?");
+            //             });
+            //     }
+            //     else {
+
+            //     }
+
+            // });
     },
 
 /*     create: function(body) {
