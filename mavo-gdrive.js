@@ -9,20 +9,29 @@ var _ = Mavo.Backend.register($.Class({
         this.permissions.on(["login", "read"]);
 
         this.key = this.mavo.element.getAttribute("mv-gdrive-key") || "447389063766-ipvdoaoqdds9tlcmr8pjdo5oambcj7va.apps.googleusercontent.com";
+        this.apiKey = "AIzaSyDBWvgHl_cvr-ZVW-_6DXznAHS4WHooTCo"; // to make API calls without authentication
         this.extension = this.format.constructor.extensions[0] || ".json";
+        this.info = this.parseSource(this.source);
 
         this.login(true);
     },
 
     update: function(url, o) {
         this.super.update.call(this, url, o);
+
+        this.info = this.parseSource(this.source);
     },
 
-    get: function(url = this.source) {
-        var filename = Mavo.Functions.filename(url);
-        var queryVal = filename.indexOf(this.extension) !== -1 ? `'${filename}'` : `'${this.mavo.id}${this.extension}'`;
-        // Searches for storage file and returns its metadata
-        return this.request("drive/v3/files", {q: `name=${queryVal} and trashed=false`, orderBy: "recency"});
+    get: function() {
+        if (this.info.fileid) {
+            return this.request(`drive/v3/files/${this.info.fileid}`, {alt: "media", key: this.apiKey});
+        }
+        else if (this.info.filename) {
+            // ISSUE: Should also query the file is in what folder for extra assurance.
+            return this.request("drive/v3/files", {q: `name='${this.info.filename}' and trashed=false`, orderBy: "recency", fields: "*"})
+                .then(info => this.request(`drive/v3/files/${info.files[0].id}`, {alt: "media", key: this.apiKey}));
+        }
+
         // Should return a promise that resolves to the data as a string or object
     },
 
