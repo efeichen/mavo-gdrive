@@ -122,7 +122,7 @@ var _ = Mavo.Backend.register($.Class({
         // Mandatory and very important! This determines when your backend is used.
         // value: The mv-storage/mv-source/mv-init value
         test: function (url) {
-            if (url.indexOf("gdrive") !== -1) {
+            if (url.indexOf("gdrive") !== -1 || url.startsWith("https://drive.google.com")) {
                 return url;
             }
             else {
