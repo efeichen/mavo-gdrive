@@ -112,8 +112,22 @@ var _ = Mavo.Backend.register($.Class({
     },
 
     parseSource: function(url) {
-        var filename = Mavo.Functions.filename(url);
-        var queryVal = filename.indexOf(this.extension) !== -1 ? `'${filename}'` : `'${this.mavo.id}${this.extension}'`;
+        var arr = url.split("/");
+        var ret = {};
+
+        if (url.startsWith("gdrive")) {
+            var filename = arr[arr.length-1].indexOf(this.extension) !== -1 ? arr[arr.length-1] : `${this.mavo.id}${this.extension}`;
+            // TODO: insert file path
+            ret.filename = filename;
+        }
+        else {
+            ret.fileid = url.substring(
+                url.indexOf("/d/") + 3,
+                url.lastIndexOf("/")
+            );
+        }
+        
+        return ret;
     },
 
     static: {
