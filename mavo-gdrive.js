@@ -5,13 +5,15 @@ var _ = Mavo.Backend.register($.Class({
     id: "Gdrive",
 
     constructor: function() {
-        console.log(this.mavo.id);
         this.permissions.on(["login", "read"]);
 
         this.key = this.mavo.element.getAttribute("mv-gdrive-key") || "447389063766-ipvdoaoqdds9tlcmr8pjdo5oambcj7va.apps.googleusercontent.com";
         this.apiKey = "AIzaSyDBWvgHl_cvr-ZVW-_6DXznAHS4WHooTCo"; // to make API calls without authentication
         this.extension = this.format.constructor.extensions[0] || ".json";
         this.info = this.parseSource(this.source);
+        
+        console.log("appID: " + this.mavo.id);
+        console.table(this.info);
 
         this.login(true);
     },
