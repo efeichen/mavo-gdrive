@@ -88,12 +88,19 @@ var _ = Mavo.Backend.register($.Class({
             .then(() => {
                 if (this.user) {
                     this.permissions.logout = true;
-
-                    this.permissions.on(["edit", "save"]);
+                    this.setPermission();
                 }
             });
     },
 
+    setPermission: function() {
+        this.request(`drive/v3/files/${this.info.fileid}`, {fields: "capabilities"})
+            .then(info => {
+                if (info.capabilities.canEdit || info.capabilities.canComment) {
+                    this.permissions.on(["edit", "save"]);
+                }
+            })
+            .catch(() => console.warn("Don't have permission edit permission"));
     },
 
     logout: function() {
