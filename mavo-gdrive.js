@@ -78,7 +78,13 @@ var _ = Mavo.Backend.register($.Class({
 				if (xhr.status == 401) {
 					this.logout();
 				}
-			})
+            })
+            .then(() => {
+                if (!this.info.fileid) {
+                    return this.request("drive/v3/files", {q: `name='${this.info.filename}' and trashed=false`, orderBy: "recency"})
+                        .then(info => this.info.fileid = info.files[0] === undefined ? undefined : info.files[0].id); // Assign file ID to this.info
+                }
+            })
             .then(() => {
                 if (this.user) {
                     this.permissions.logout = true;
