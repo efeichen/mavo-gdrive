@@ -13,7 +13,6 @@ var _ = Mavo.Backend.register($.Class({
         this.info = this.parseSource(this.source);
         
         console.log("appID: " + this.mavo.id);
-        console.table(this.info);
 
         this.login(true);
     },
@@ -25,24 +24,19 @@ var _ = Mavo.Backend.register($.Class({
     },
 
     get: function() {
+        // TODO: handle case when user accidently changes file name on Google Drive
         if (this.info.fileid) {
             return this.request(`drive/v3/files/${this.info.fileid}`, {alt: "media", key: this.apiKey});
         }
         else if (this.info.filename) {
             // ISSUE: Should also query the file is in what folder for extra assurance.
+            // ISSUE: Should put the query object into a variable?
             return this.request("drive/v3/files", {q: `name='${this.info.filename}' and trashed=false`, orderBy: "recency", fields: "*"})
                 .then(info => this.request(`drive/v3/files/${info.files[0].id}`, {alt: "media", key: this.apiKey}));
         }
-
-        // Should return a promise that resolves to the data as a string or object
     },
 
-    // Low-level saving code.
-    // serialized: Data serialized according to this.format
-    // path: Path to store data
-    // o: Arbitrary options
     put: function(serialized, path = this.path, o = {}) {
-        // Returns promise
     },
 
     // If your backend supports uploads, this is mandatory.
@@ -87,37 +81,10 @@ var _ = Mavo.Backend.register($.Class({
                     this.permissions.on(["edit", "save"]);
                 }
             });
-            // .then(response => {
-            //     // Need to check if the user has edit permission to the storage file.
-            //     var fileMeta = response.files[0];
-            //     if (fileMeta === undefined) {
-            //         this.request("drive/v3/files", {name: `${this.mavo.id}${this.extension}`}, "POST")
-            //             .then(info => {
-            //                 console.log(info);
-            //             })
-            //             .catch(() => {
-            //                 console.log("NANI!?");
-            //             });
-            //     }
-            //     else {
-
-            //     }
-
-            // });
     },
 
-/*     create: function(body) {
-        var data = JSON.stringify(body);
-        return $.fetch(`${_.apiDomain}drive/v3/files`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${this.accessToken}`
-            },
-            data
-        });
     },
- */
+
     logout: function() {
         return this.oAuthLogout();
     },
