@@ -42,6 +42,11 @@ var _ = Mavo.Backend.register($.Class({
     },
 
     put: function(serialized, path = this.path, o = {}) {
+        return this.request(`upload/drive/v3/files/${this.info.fileid}?uploadType=media`, serialized, "PATCH", {
+            headers: {
+                "Content-Type": "application/octet-stream"
+            }
+        });
     },
 
     // If your backend supports uploads, this is mandatory.
