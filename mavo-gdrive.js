@@ -32,7 +32,12 @@ var _ = Mavo.Backend.register($.Class({
             // ISSUE: Should also query the file is in what folder for extra assurance.
             // ISSUE: Should put the query object into a variable?
             return this.request("drive/v3/files", {q: `name='${this.info.filename}' and trashed=false`, orderBy: "recency", fields: "*"})
-                .then(info => this.request(`drive/v3/files/${info.files[0].id}`, {alt: "media", key: this.apiKey}));
+                .then(info => this.request(`drive/v3/files/${info.files[0].id}`, {alt: "media", key: this.apiKey}))
+                .catch(xhr => {
+                    if (xhr.status === 403) {
+                        console.warn(`Can't request ${xhr.responseURL} without authentication. Please login.`);
+                    }
+                });
         }
     },
 
