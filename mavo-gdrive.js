@@ -110,10 +110,9 @@ var _ = Mavo.Backend.register($.Class({
             ret.filename = filename;
         }
         else {
-            ret.fileid = url.substring(
-                url.indexOf("/d/") + 3,
-                url.lastIndexOf("/")
-            );
+            var from = "/d/";
+            var to = "/";
+            ret.fileid = url.substring(url.indexOf(from) + from.length, url.lastIndexOf(to));
         }
         
         return ret;
