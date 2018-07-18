@@ -24,7 +24,7 @@ var _ = Mavo.Backend.register($.Class({
     },
 
     get: function() {
-        // TODO: handle case when user accidently changes file name on Google Drive
+        // TODO: handle case when user accidently changes file name on Google Drive (e.g. throw warning/error)
         if (this.info.fileid) {
             return this.request(`drive/v3/files/${this.info.fileid}`, {alt: "media", key: this.apiKey});
         }
@@ -41,18 +41,38 @@ var _ = Mavo.Backend.register($.Class({
         }
     },
 
-    put: function(serialized, path = this.path, o = {}) {
-        return this.request(`upload/drive/v3/files/${this.info.fileid}?uploadType=media`, serialized, "PATCH", {
-            headers: {
-                "Content-Type": "application/octet-stream"
-            }
-        });
+    put: function(serialized, path = this.info.fileid, o = {}) {
+        console.log(serialized);
+        var meta = o.meta || {name: this.info.filename};
+        return this.request(`drive/v3/files/${path}`)
+            .catch(() => {
+                return this.request("upload/drive/v3/files?uploadType=resumable", meta, "POST", { // Might need to stringify meta
+                    headers: {
+                        "Content-Length": JSON.stringify(meta).length
+                    }
+                }).then(resp => this.request(resp.Location, serialized, "PUT", { // resp.Location is probably wrong
+                    headers: {
+                        "Content-Length": serialized.length
+                    }
+                }));
+            }) // Can't get file, create it.
+            .then(() => {
+                return this.request(`upload/drive/v3/files/${this.info.fileid}?uploadType=resumable`, {name: "gdriveTest.json"}, "PATCH", {
+                    headers: {
+                        "Content-Length": JSON.stringify(meta).length
+                    }
+                }).then(resp => console.log(resp));
+            }); // If file exists, update it. NEED TEST!!
     },
 
     // If your backend supports uploads, this is mandatory.
-    // file: File object to be uploaded
+    // file: File object to be uploaded FILE = SERIALIZED = CONTENT
     // path: relative path to store uploads (e.g. "images")
     upload: function(file, path) {
+        var info = path.split("/");
+        var filename = info[1], foldername = info[0];
+        return this.put(file); // Search how to upload file into specified folder
+
         // Upload code. Should call this.put()
     },
 
