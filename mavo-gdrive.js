@@ -43,26 +43,29 @@ var _ = Mavo.Backend.register($.Class({
 
     put: function(serialized, path = this.info.fileid, o = {}) {
         console.log(serialized);
-        var meta = o.meta || {name: this.info.filename};
+        var meta = JSON.stringify(o.meta || {name: this.info.filename});
+
         return this.request(`drive/v3/files/${path}`)
-            .catch(() => {
-                return this.request("upload/drive/v3/files?uploadType=resumable", meta, "POST", { // Might need to stringify meta
-                    headers: {
-                        "Content-Length": JSON.stringify(meta).length
-                    }
-                }).then(resp => this.request(resp.Location, serialized, "PUT", { // resp.Location is probably wrong
-                    headers: {
-                        "Content-Length": serialized.length
-                    }
-                }));
-            }) // Can't get file, create it.
-            .then(() => {
-                return this.request(`upload/drive/v3/files/${this.info.fileid}?uploadType=resumable`, {name: "gdriveTest.json"}, "PATCH", {
-                    headers: {
-                        "Content-Length": JSON.stringify(meta).length
-                    }
-                }).then(resp => console.log(resp));
-            }); // If file exists, update it. NEED TEST!!
+            .catch(() => $.fetch(`${_.apiDomain}upload/drive/v3/files?uploadType=resumable`, { // Might need to stringify meta
+                method: "POST",
+                data: meta,
+                headers: {
+                    "Authorization": `Bearer ${this.accessToken}`,
+                    "Content-Type": "application/json; charset=utf-8"
+            }
+            })) // Can't get file, create it.
+            .then(() => $.fetch(`${_.apiDomain}upload/drive/v3/files/${this.info.fileid}?uploadType=resumable`, {
+                method: "PATCH",
+                data: meta,
+                headers: {
+                    "Authorization": `Bearer ${this.accessToken}`,
+                    "Content-Type": "application/json; charset=utf-8"
+                },
+            })) // If file exists, update it.
+            .then(resp => $.fetch(resp.getResponseHeader("location"), {
+                method: "PUT",
+                data: serialized
+            }));
     },
 
     // If your backend supports uploads, this is mandatory.
