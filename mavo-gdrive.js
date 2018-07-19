@@ -41,12 +41,12 @@ var _ = Mavo.Backend.register($.Class({
         }
     },
 
-    put: function(serialized, path = this.info.fileid, o = {}) {
+    put: function(serialized, path = this.info.id, o = {}) {
         console.log(serialized);
-        var meta = JSON.stringify(o.meta || {name: this.info.filename});
+        var meta = JSON.stringify(o.meta || {name: this.info.name});
 
         return this.request(`drive/v3/files/${path}`)
-            .catch(() => $.fetch(`${_.apiDomain}upload/drive/v3/files?uploadType=resumable`, { // Might need to stringify meta
+            .catch(() => $.fetch(`${_.apiDomain}upload/drive/v3/files?uploadType=resumable`, {
                 method: "POST",
                 data: meta,
                 headers: {
@@ -54,7 +54,7 @@ var _ = Mavo.Backend.register($.Class({
                     "Content-Type": "application/json; charset=utf-8"
             }
             })) // Can't get file, create it.
-            .then(() => $.fetch(`${_.apiDomain}upload/drive/v3/files/${this.info.fileid}?uploadType=resumable`, {
+            .then(() => $.fetch(`${_.apiDomain}upload/drive/v3/files/${this.info.id}?uploadType=resumable`, {
                 method: "PATCH",
                 data: meta,
                 headers: {
