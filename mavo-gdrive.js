@@ -101,6 +101,7 @@ var _ = Mavo.Backend.register($.Class({
 
     login: function(passive) {
         return this.oAuthenticate(passive)
+            .then(() => this.setMeta())
             .then(() => this.getUser())
             .catch(xhr => {
 				if (xhr.status == 401) {
@@ -108,17 +109,23 @@ var _ = Mavo.Backend.register($.Class({
 				}
             })
             .then(() => {
-                if (!this.info.fileid) {
-                    return this.request("drive/v3/files", {q: `name='${this.info.filename}' and trashed=false`, orderBy: "recency"})
-                        .then(info => this.info.fileid = info.files[0] === undefined ? undefined : info.files[0].id); // Assign file ID to this.info
-                }
-            })
-            .then(() => {
                 if (this.user) {
                     this.permissions.logout = true;
                     this.setPermission();
                 }
             });
+    },
+
+    setMeta: function() {
+        var query = `name='${this.info.name}' and trashed=false and mimeType contains '${this.extension.substring(1)}'`;
+
+        if (this.info.name) {
+            return this.request("drive/v3/files", {q: query, corpora: "user", spaces: "drive", orderBy: "recency", fields: "*"})
+                .then(info => this.info = info.files[0] ? info.files[0] : this.info); // Assign file ID to this.info
+        }
+        else if (this.info.id) {
+            return this.request(`drive/v3/files/${info.file.id}`, {fields: "*"}).then(info => this.info = info);
+        }
     },
 
     setPermission: function() {
