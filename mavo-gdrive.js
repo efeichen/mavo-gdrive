@@ -24,21 +24,10 @@ var _ = Mavo.Backend.register($.Class({
     },
 
     get: function() {
-        // TODO: handle case when user accidently changes file name on Google Drive (e.g. throw warning/error)
-        if (this.info.fileid) {
-            return this.request(`drive/v3/files/${this.info.fileid}`, {alt: "media", key: this.apiKey});
-        }
-        else if (this.info.filename) {
-            // ISSUE: Should also query the file is in what folder for extra assurance.
-            // ISSUE: Should put the query object into a variable?
-            return this.request("drive/v3/files", {q: `name='${this.info.filename}' and trashed=false`, orderBy: "recency", fields: "*"})
-                .then(info => this.request(`drive/v3/files/${info.files[0].id}`, {alt: "media", key: this.apiKey}))
-                .catch(xhr => {
-                    if (xhr.status === 403) {
-                        console.warn(`Can't request ${xhr.responseURL} without authentication. Please login.`);
-                    }
-                });
-        }
+        // TODO: handle cases such as: can't find file, need login, no permission.
+        if (this.info.id) {
+            return this.request(`drive/v3/files/${this.info.id}`, {alt: "media", key: this.apiKey});
+        }        
     },
 
     put: function(serialized, path = this.info.id, o = {}) {
