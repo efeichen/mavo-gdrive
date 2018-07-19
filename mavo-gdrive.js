@@ -147,14 +147,12 @@ var _ = Mavo.Backend.register($.Class({
         var ret = {};
 
         if (url.startsWith("gdrive")) {
-            var filename = arr[arr.length-1].indexOf(this.extension) !== -1 ? arr[arr.length-1] : `${this.mavo.id}${this.extension}`;
-            // TODO: insert file path
-            ret.filename = filename;
+            ret.name = arr[arr.length-1].indexOf(this.extension) !== -1 ? arr.pop() : `${this.mavo.id}${this.extension}`;
         }
         else {
             var from = "/d/";
             var to = "/";
-            ret.fileid = url.substring(url.indexOf(from) + from.length, url.lastIndexOf(to));
+            ret.id = url.substring(url.indexOf(from) + from.length, url.lastIndexOf(to));
         }
         
         return ret;
