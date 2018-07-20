@@ -63,15 +63,39 @@ var _ = Mavo.Backend.register($.Class({
             .then(resp => resp.webContentLink);
     },
 
-    // If your backend supports uploads, this is mandatory.
-    // file: File object to be uploaded FILE = SERIALIZED = CONTENT
-    // path: relative path to store uploads (e.g. "images")
-    upload: function(file, path) {
-        var info = path.split("/");
-        var filename = info[1], foldername = info[0];
-        return this.put(file); // Search how to upload file into specified folder
+    upload: function(content, path) {
+        var pathInfo = path.split("/");
+        var foldername = pathInfo[0];
+        var uploadname = pathInfo[pathInfo.length-1];
 
-        // Upload code. Should call this.put()
+        return this.request("drive/v3/files", {q: `name='${foldername}' and mimeType='application/vnd.google-apps.folder' and '${this.info.parents[0]}' in parents and trashed=false`})
+            .then(info => {
+                var folderId = !info.files[0] ? null : info.files[0].id;
+
+                if (info.files.length === 0) { // If no folder found, create one and put file in there.
+                    return this.request("drive/v3/files", {name: foldername, mimeType: "application/vnd.google-apps.folder", parents:[this.info.parents[0]]}, "POST")
+                        .then(folder => this.put(content, null, {
+                            meta: {
+                                name: uploadname,
+                                parents: [folder.id]
+                            }
+                        }));
+                }
+                else {
+                    return this.request("drive/v3/files", {q: `name='${uploadname}' and '${info.files[0].id}' in parents and trashed=false`})
+                        .then(info => {
+                            var meta = {
+                                name : uploadname,
+                            };
+                            var fileExists = !!info.files[0];
+                            meta[fileExists ? "addParents" : "parents"] = fileExists ? folderId : [folderId];
+
+                            return this.put(content, fileExists ? info.files[0].id : null, {
+                                meta: meta
+                            });
+                        });
+                }
+            });
     },
 
     oAuthParams: () => `&scope=https://www.googleapis.com/auth/drive&redirect_uri=${encodeURIComponent("http://localhost:8001")}&response_type=code`,
