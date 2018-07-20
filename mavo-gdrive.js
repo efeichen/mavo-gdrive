@@ -12,8 +12,6 @@ var _ = Mavo.Backend.register($.Class({
         this.extension = this.format.constructor.extensions[0] || ".json";
         this.info = this.parseSource(this.source);
         
-        console.log("appID: " + this.mavo.id);
-
         this.login(true);
     },
 
