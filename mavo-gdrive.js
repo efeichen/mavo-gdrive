@@ -28,31 +28,39 @@ var _ = Mavo.Backend.register($.Class({
         }        
     },
 
-    put: function(serialized, path = this.info.id, o = {}) {
-        console.log(serialized);
+    // May involve loop to create multiple folders.
+    put: function(serialized, id = this.info.id, o = {}) {
         var meta = JSON.stringify(o.meta || {name: this.info.name});
+        var initRequest;
 
-        return this.request(`drive/v3/files/${path}`)
-            .catch(() => $.fetch(`${_.apiDomain}upload/drive/v3/files?uploadType=resumable`, {
+        if (id === null) {
+            initRequest = $.fetch(`${_.apiDomain}upload/drive/v3/files?uploadType=resumable`, {
                 method: "POST",
                 data: meta,
                 headers: {
                     "Authorization": `Bearer ${this.accessToken}`,
                     "Content-Type": "application/json; charset=utf-8"
-            }
-            })) // Can't get file, create it.
-            .then(() => $.fetch(`${_.apiDomain}upload/drive/v3/files/${this.info.id}?uploadType=resumable`, {
+                }
+            });
+        }
+        else {
+            initRequest = $.fetch(`${_.apiDomain}upload/drive/v3/files/${id}?uploadType=resumable`, {
                 method: "PATCH",
                 data: meta,
                 headers: {
                     "Authorization": `Bearer ${this.accessToken}`,
                     "Content-Type": "application/json; charset=utf-8"
                 },
-            })) // If file exists, update it.
+            });
+        }
+
+        return initRequest
             .then(resp => $.fetch(resp.getResponseHeader("location"), {
                 method: "PUT",
-                data: serialized
-            }));
+                data: serialized,
+            }))
+            .then(info => this.request(`drive/v3/files/${JSON.parse(info.response).id}`, { fields: "*" }))
+            .then(resp => resp.webContentLink);
     },
 
     // If your backend supports uploads, this is mandatory.
