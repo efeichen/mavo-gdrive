@@ -132,6 +132,18 @@ var _ = Mavo.Backend.register($.Class({
         // Set permission when creating file?
     },
 
+    setPermission: async function() {
+        var canEdit = this.info.capabilities ? this.info.capabilities.canEdit : false;
+        var canComment = this.info.capabilities ? this.info.capabilities.canComment : false;
+
+        if (canEdit || canComment || !this.info.id) {
+            this.permissions.on(["edit", "save"]);
+        }
+        else {
+            console.warn("Don't have edit permission");
+        }
+    },
+
     getUser: function() {
         if (this.user) {
             return Promise.resolve(this.user);
