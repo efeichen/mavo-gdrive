@@ -164,7 +164,14 @@ var _ = Mavo.Backend.register($.Class({
 
     login: function(passive) {
         return this.oAuthenticate(passive)
-            .then(() => this.setMeta())
+            .then(() => {
+                if (this.info.id) {
+                    return this.request(`drive/v3/files/${this.info.id}`, {fields: "*"}).then(info => this.info = info);
+                }
+                else {
+                    return this.setStorage();
+                }
+            })
             .then(() => this.getUser())
             .catch(xhr => {
 				if (xhr.status == 401) {
