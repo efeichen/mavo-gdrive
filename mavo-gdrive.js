@@ -28,7 +28,6 @@ var _ = Mavo.Backend.register($.Class({
         }        
     },
 
-    // May involve loop to create multiple folders.
     put: function(serialized, id = this.info.id, o = {}) {
         var meta = JSON.stringify(o.meta || {name: this.info.name});
         var initRequest;
@@ -100,6 +99,39 @@ var _ = Mavo.Backend.register($.Class({
 
     oAuthParams: () => `&scope=https://www.googleapis.com/auth/drive&redirect_uri=${encodeURIComponent("http://localhost:8001")}&response_type=code`,
 
+    setStorage: async function() {
+        var parentId = "root";
+
+        for (const foldername of this.info.ancestorNames) {
+            const folderList = await this.request("drive/v3/files", {q: `name='${foldername}' and trashed=false and mimeType='application/vnd.google-apps.folder' and '${parentId}' in parents`});
+            var resp = "";
+
+            if (folderList.files.length === 0) {
+                resp = await this.request("drive/v3/files", {name: foldername, mimeType: "application/vnd.google-apps.folder", parents: [parentId]}, "POST");
+            }
+            else {
+                resp = folderList.files[0];
+            }
+
+            parentId = resp.id;
+        }
+        
+        // Create storage file in the last folder
+        return this.request("drive/v3/files", {q: `name='${this.info.name}' and trashed=false and '${parentId}' in parents`, fields: "*"})
+            .then(info => {
+                if (info.files.length === 0) {
+                    return this.request("drive/v3/files?fields=*", {name: this.info.name, parents: [parentId]}, "POST");
+                }
+                else {
+                    return info.files[0];
+                }
+            })
+            .then(info => this.info = info);
+
+        // When to use info when to use resp?
+        // Set permission when creating file?
+    },
+
     getUser: function() {
         if (this.user) {
             return Promise.resolve(this.user);
@@ -133,27 +165,6 @@ var _ = Mavo.Backend.register($.Class({
                     this.setPermission();
                 }
             });
-    },
-
-    setMeta: function() {
-        var query = `name='${this.info.name}' and trashed=false and mimeType contains '${this.extension.substring(1)}'`;
-
-        if (this.info.name) {
-            return this.request("drive/v3/files", {q: query, corpora: "user", spaces: "drive", orderBy: "recency", fields: "*"})
-                .then(info => this.info = info.files[0] ? info.files[0] : this.info); // Assign file ID to this.info
-        }
-        else if (this.info.id) {
-            return this.request(`drive/v3/files/${info.file.id}`, {fields: "*"}).then(info => this.info = info);
-        }
-    },
-
-    setPermission: function() {
-        if (this.info.capabilities.canEdit || this.info.capabilities.canComment) {
-            this.permissions.on(["edit", "save"]);
-        }
-        else {
-            console.warn("Don't have permission edit permission");
-        }
     },
 
     logout: function() {
