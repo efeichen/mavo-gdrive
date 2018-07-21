@@ -192,18 +192,23 @@ var _ = Mavo.Backend.register($.Class({
 
     parseSource: function(url) {
         var arr = url.split("/");
-        var ret = {};
 
         if (url.startsWith("gdrive")) {
-            ret.name = arr[arr.length-1].indexOf(this.extension) !== -1 ? arr.pop() : `${this.mavo.id}${this.extension}`;
+            var name = arr[arr.length-1].indexOf(this.extension) !== -1 ? arr.pop() : `${this.mavo.id}${this.extension}`;
+            arr.shift();
+            var ancestorNames = arr.filter(n => n !== "");
+            return {
+                name: name,
+                ancestorNames: ancestorNames
+            };
         }
         else {
             var from = "/d/";
             var to = "/";
-            ret.id = url.substring(url.indexOf(from) + from.length, url.lastIndexOf(to));
+            return {
+                id: url.substring(url.indexOf(from) + from.length, url.lastIndexOf(to))
+            };
         }
-        
-        return ret;
     },
 
     static: {
