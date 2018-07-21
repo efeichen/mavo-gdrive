@@ -10,6 +10,7 @@ var _ = Mavo.Backend.register($.Class({
         this.key = this.mavo.element.getAttribute("mv-gdrive-key") || "447389063766-ipvdoaoqdds9tlcmr8pjdo5oambcj7va.apps.googleusercontent.com";
         this.apiKey = "AIzaSyDBWvgHl_cvr-ZVW-_6DXznAHS4WHooTCo"; // to make API calls without authentication
         this.extension = this.format.constructor.extensions[0] || ".json";
+        this.fileFields = "name, id, mimeType, parents, capabilities";
         this.info = this.parseSource(this.source);
         
         this.login(true);
@@ -54,11 +55,8 @@ var _ = Mavo.Backend.register($.Class({
         }
 
         return initRequest
-            .then(resp => $.fetch(resp.getResponseHeader("location"), {
-                method: "PUT",
-                data: serialized,
-            }))
-            .then(info => this.request(`drive/v3/files/${JSON.parse(info.response).id}`, { fields: "*" }))
+            .then(resp => this.request(`${resp.getResponseHeader("location")}&fields=*`, serialized, "PUT"))
+            .then(info => this.request(`drive/v3/files/${info.id}`, {fields: "webContentLink"}))
             .then(resp => resp.webContentLink);
     },
 
@@ -67,7 +65,7 @@ var _ = Mavo.Backend.register($.Class({
         var foldername = pathInfo[0];
         var uploadname = pathInfo[pathInfo.length-1];
 
-        return this.request("drive/v3/files", {q: `name='${foldername}' and mimeType='application/vnd.google-apps.folder' and '${this.info.parents[0]}' in parents and trashed=false`})
+        return this.request("drive/v3/files", {q: `name='${foldername}' and mimeType='application/vnd.google-apps.folder' and '${this.info.parents[0]}' in parents and trashed=false`, fields: "files/id"})
             .then(info => {
                 var folderId = !info.files[0] ? null : info.files[0].id;
 
@@ -81,12 +79,12 @@ var _ = Mavo.Backend.register($.Class({
                         }));
                 }
                 else {
-                    return this.request("drive/v3/files", {q: `name='${uploadname}' and '${info.files[0].id}' in parents and trashed=false`})
+                    return this.request("drive/v3/files", {q: `name='${uploadname}' and '${folderId}' in parents and trashed=false`, fields: "files/id"})
                         .then(info => {
+                            var fileExists = !!info.files[0];
                             var meta = {
                                 name : uploadname,
                             };
-                            var fileExists = !!info.files[0];
                             meta[fileExists ? "addParents" : "parents"] = fileExists ? folderId : [folderId];
 
                             return this.put(content, fileExists ? info.files[0].id : null, {
@@ -103,7 +101,7 @@ var _ = Mavo.Backend.register($.Class({
         var parentId = "root";
 
         for (const foldername of this.info.ancestorNames) {
-            const folderList = await this.request("drive/v3/files", {q: `name='${foldername}' and trashed=false and mimeType='application/vnd.google-apps.folder' and '${parentId}' in parents`});
+            const folderList = await this.request("drive/v3/files", {q: `name='${foldername}' and trashed=false and mimeType='application/vnd.google-apps.folder' and '${parentId}' in parents`, fields: "files/id"});
             var resp = "";
 
             if (folderList.files.length === 0) {
@@ -116,11 +114,10 @@ var _ = Mavo.Backend.register($.Class({
             parentId = resp.id;
         }
         
-        // Create storage file in the last folder
-        return this.request("drive/v3/files", {q: `name='${this.info.name}' and trashed=false and '${parentId}' in parents`, fields: "*"})
+        return this.request("drive/v3/files", {q: `name='${this.info.name}' and trashed=false and '${parentId}' in parents`, fields: `files(${this.fileFields})`})
             .then(info => {
                 if (info.files.length === 0) {
-                    return this.request("drive/v3/files?fields=*", {name: this.info.name, parents: [parentId]}, "POST");
+                    return this.request(`drive/v3/files?fields=${this.fileFields}`, {name: this.info.name, parents: [parentId]}, "POST");
                 }
                 else {
                     return info.files[0];
@@ -166,7 +163,7 @@ var _ = Mavo.Backend.register($.Class({
         return this.oAuthenticate(passive)
             .then(() => {
                 if (this.info.id) {
-                    return this.request(`drive/v3/files/${this.info.id}`, {fields: "*"}).then(info => this.info = info);
+                    return this.request(`drive/v3/files/${this.info.id}`, {fields: this.fileFields}).then(info => this.info = info);
                 }
                 else {
                     return this.setStorage();
@@ -214,8 +211,7 @@ var _ = Mavo.Backend.register($.Class({
     static: {
         apiDomain: "https://www.googleapis.com/",
         oAuth: "https://accounts.google.com/o/oauth2/v2/auth",
-        // Mandatory and very important! This determines when your backend is used.
-        // value: The mv-storage/mv-source/mv-init value
+
         test: function (url) {
             if (url.indexOf("gdrive") !== -1 || url.startsWith("https://drive.google.com")) {
                 return url;
