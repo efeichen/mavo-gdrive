@@ -97,24 +97,30 @@ var _ = Mavo.Backend.register($.Class({
 
     oAuthParams: () => `&scope=https://www.googleapis.com/auth/drive&redirect_uri=${encodeURIComponent("http://localhost:8001")}&response_type=code`,
 
-    setStorage: async function() {
+    setStorage: function() {
         var parentId = "root";
+        var promiseChain = Promise.resolve(parentId);
 
         for (const foldername of this.info.ancestorNames) {
-            const folderList = await this.request("drive/v3/files", {q: `name='${foldername}' and trashed=false and mimeType='application/vnd.google-apps.folder' and '${parentId}' in parents`, fields: "files/id"});
-            var resp = "";
+            const makeNextPromise = id => {
+                return this.request("drive/v3/files", {q: `name='${foldername}' and trashed=false and mimeType='application/vnd.google-apps.folder' and '${id}' in parents`, fields: "files/id"})
+                    .then(folderList => {
+                        if (folderList.files.length === 0) {
+                            return this.request("drive/v3/files", {name: foldername, mimeType: "application/vnd.google-apps.folder", parents: [id]}, "POST");
+                        }
+                        else {
+                            return folderList.files[0];
+                        }
+                    });
+            };
 
-            if (folderList.files.length === 0) {
-                resp = await this.request("drive/v3/files", {name: foldername, mimeType: "application/vnd.google-apps.folder", parents: [parentId]}, "POST");
-            }
-            else {
-                resp = folderList.files[0];
-            }
-
-            parentId = resp.id;
+            promiseChain = promiseChain.then(id => {
+                return makeNextPromise(id).then(resp => parentId = resp.id);
+            });
         }
-        
-        return this.request("drive/v3/files", {q: `name='${this.info.name}' and trashed=false and '${parentId}' in parents`, fields: `files(${this.fileFields})`})
+
+        return promiseChain.then(() => {
+            return this.request("drive/v3/files", {q: `name='${this.info.name}' and trashed=false and '${parentId}' in parents`, fields: `files(${this.fileFields})`})
             .then(info => {
                 if (info.files.length === 0) {
                     return this.request(`drive/v3/files?fields=${this.fileFields}`, {name: this.info.name, parents: [parentId]}, "POST");
@@ -124,7 +130,8 @@ var _ = Mavo.Backend.register($.Class({
                 }
             })
             .then(info => this.info = info);
-
+        });
+        
         // When to use info when to use resp?
         // Set permission when creating file?
     },
