@@ -23,10 +23,9 @@ var _ = Mavo.Backend.register($.Class({
     },
 
     get: function() {
-        // TODO: handle cases such as: can't find file, need login, no permission.
         if (this.info.id) {
             return this.request(`drive/v3/files/${this.info.id}`, {alt: "media", key: this.apiKey});
-        }        
+        }
     },
 
     put: function(serialized, id = this.info.id, o = {}) {
