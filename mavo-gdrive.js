@@ -126,7 +126,6 @@ var _ = Mavo.Backend.register($.Class({
             .then(info => this.info = info);
 
         // When to use info when to use resp?
-        // Set permission when creating file?
     },
 
     setPermission: async function() {
@@ -213,12 +212,8 @@ var _ = Mavo.Backend.register($.Class({
         oAuth: "https://accounts.google.com/o/oauth2/v2/auth",
 
         test: function (url) {
-            if (url.indexOf("gdrive") !== -1 || url.startsWith("https://drive.google.com")) {
-                return url;
-            }
-            else {
-                return false;
-            }
+            url = new URL(url, Mavo.base);
+            return /drive.google.com/.test(url.host) || url.pathname.startsWith("/gdrive");
         }
     }
 }));
