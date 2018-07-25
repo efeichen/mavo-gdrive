@@ -58,7 +58,7 @@ If you wish to contribute:
 Use `test.html` or other Mavo apps for testing. In `test.html`, the `<script>` element that links the backend JS is already there. Make sure to add that to test the local version of the Google Drive backend.
 
 ## API Reference
-The backend uses the Drive API by Google. Checkout their [reference page](tps://developers.google.com/drive/api/v3/reference).
+The backend uses the Drive API by Google. Checkout their [reference page](https://developers.google.com/drive/api/v3/reference).
 
 ## Acknowledgments
 * To Google for its [Drive API](https://developers.google.com/drive/) and Google Drive, which inspired me to make this *particular* Mavo backend.
