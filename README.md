@@ -36,26 +36,35 @@ How to use this backend in your Mavo web application.
 ### Method 2: File Path
 **Use this method if you don't wish any storage data to be displayed publically but want to allow users to have their own data after login.**
 
-Inside the `mv-storage`, `mv-source` or `mv-init` attribute of your Mavo app, add the keyword `gdrive` followed by a **path** that declares where the storage file should be in your drive. For example, `mv-storage="gdrive/Mavo Apps/Example/storage.json` will tell Mavo that the file `storage.json` is inside the `Example` folder which is inside the `Mavo Apps` folder.
+Inside the `mv-storage`, `mv-source` or `mv-init` attribute of your Mavo app, add the keyword `gdrive/` followed by a **path** that declares where the storage file should be in your drive. For example, `mv-storage="gdrive/Mavo Apps/Example/storage.json` will tell Mavo that the file `storage.json` is inside the `Example` folder which is inside the `Mavo Apps` folder.
 
 If you don't specify the name of the storage file, the default name will be `[your Mavo app ID].json`. If the folder or file you specified in the attribute doesn't exist, the backend will create it for you. Also, make sure to **include the extension name** of your storage file (e.g. `.json`, `.csv`), else it will be recognized as a folder.
 
 ## Dev Setup Instructions
-How to set up a copy of this project on your local machine for development and testing. Make sure you have a **Google account with Google Drive set up**. 
+How to set up a copy of this project on your local machine for development and contribution. Make sure you have a **Google account with Google Drive set up**. 
 
-### Installing
-1. Clone the repository.
-2. Install NPM (installed with [Node.js](https://nodejs.org)).
-3. Install ESLint globally with `npm install -g eslint` **(optional)**.
+1. Fork the repository.
+2. Clone your forked repository: `git clone git@github.com:[username]/mavo-gdrive.git`.
+
+### Contributing
+If you wish to contribute:
+
+1. Add new remote that points to original project: `git remote add upstream git@github.com:efeichen/mavo-gdrive.git`.
+2. Create new branch from `master`: `git checkout -b [branchname] master`.
+3. Install NPM (comes with [Node.js](https://nodejs.org)).
+4. Install ESLint globally with `npm install -g eslint`.
 
 ### Testing
-Use `test.html` or other Mavo apps for testing. In `test.html`, the `<script>` tag that links the backend JS is already there. Make sure to add that to test the local version of the Google Drive backend.
+Use `test.html` or other Mavo apps for testing. In `test.html`, the `<script>` element that links the backend JS is already there. Make sure to add that to test the local version of the Google Drive backend.
 
 ## API Reference
+The backend uses the Drive API by Google. Checkout their [reference page](tps://developers.google.com/drive/api/v3/reference).
 
-## Contribute
-
-## Credits
+## Acknowledgments
+* To Google for its [Drive API](https://developers.google.com/drive/) and Google Drive, which inspired me to make this *particular* Mavo backend.
+* To the support on [Stack Overflow](https://stackoverflow.com/), contributors to [MDN](https://developer.mozilla.org), and friends on [Twitter](https://twitter.com) for helping me solve table-flipping problems along the way.
+* To [David Karger](http://people.csail.mit.edu/karger) for paving my way to the wonderful experiences at MIT and beyond.
+* And most importantly, to [Lea Verou](http://lea.verou.me/) for patiently helping and teaching me in things not just limited to Mavo and JS, but many more. 
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/efeichen/mavo-gdrive/blob/master/LICENSE) file for details.
