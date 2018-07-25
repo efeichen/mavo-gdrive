@@ -23,8 +23,12 @@ var _ = Mavo.Backend.register($.Class({
     },
 
     get: function() {
-        if (this.info.id) {
-            return this.request(`drive/v3/files/${this.info.id}`, {alt: "media", key: this.apiKey});
+        if (this.info.id && !this.user) {
+            return fetch(`https://cors-anywhere.herokuapp.com/https://drive.google.com/uc?id=${this.info.id}&export=download`)
+                .then(resp => resp.text());
+        }
+        else {
+            return this.request(`drive/v3/files/${this.info.id}`, {alt: "media"});
         }
     },
 
