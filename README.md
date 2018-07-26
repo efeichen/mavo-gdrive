@@ -62,7 +62,7 @@ The backend uses the Drive API by Google. Checkout their [reference page](https:
 
 ## Acknowledgments
 * To Google for its [Drive API](https://developers.google.com/drive/) and Google Drive, which inspired me to make this *particular* Mavo backend.
-* To the support on [Stack Overflow](https://stackoverflow.com/), contributors to [MDN](https://developer.mozilla.org), and friends on [Twitter](https://twitter.com) for helping me solve table-flipping problems along the way.
+* To the support on [Stack Overflow](https://stackoverflow.com/), contributors of [MDN](https://developer.mozilla.org), and friends on [Twitter](https://twitter.com) for helping me solve table-flipping problems along the way.
 * To [David Karger](http://people.csail.mit.edu/karger) for paving my way to the wonderful experiences at MIT and beyond.
 * And most importantly, to [Lea Verou](http://lea.verou.me/) for patiently helping me with Mavo and JS. She has taught me a lot, not just limited to programming, during the first two months we met.
 
