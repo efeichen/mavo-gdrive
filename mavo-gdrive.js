@@ -8,7 +8,6 @@ var _ = Mavo.Backend.register($.Class({
         this.permissions.on(["login", "read"]);
 
         this.key = this.mavo.element.getAttribute("mv-gdrive-key") || "447389063766-ipvdoaoqdds9tlcmr8pjdo5oambcj7va.apps.googleusercontent.com";
-        this.apiKey = "AIzaSyDBWvgHl_cvr-ZVW-_6DXznAHS4WHooTCo"; // to make public API calls. POTENTIAL SECURITY FLAW!
         this.extension = this.format.constructor.extensions[0] || ".json";
         this.fileFields = "name, id, mimeType, parents, capabilities";
         this.info = this.parseSource(this.source);
@@ -23,8 +22,12 @@ var _ = Mavo.Backend.register($.Class({
     },
 
     get: function() {
-        if (this.info.id) {
-            return this.request(`drive/v3/files/${this.info.id}`, {alt: "media", key: this.apiKey});
+        if (this.info.id && !this.user) {
+            return $.fetch(`https://cors-anywhere.herokuapp.com/https://drive.google.com/uc?id=${this.info.id}&export=download`)
+                .then(resp => resp.responseText);
+        }
+        else {
+            return this.request(`drive/v3/files/${this.info.id}`, {alt: "media"});
         }
     },
 
