@@ -27,7 +27,8 @@ var _ = Mavo.Backend.register($.Class({
                 .then(resp => resp.responseText);
         }
         else {
-            return this.request(`drive/v3/files/${this.info.id}`, {alt: "media"});
+            return this.request(`drive/v3/files/${this.info.id}`, {alt: "media"})
+                .catch(() => console.warn("Can't access storage file before logging in."));
         }
     },
 
@@ -220,7 +221,8 @@ var _ = Mavo.Backend.register($.Class({
 
         test: function (url) {
             url = new URL(url, Mavo.base);
-            return /drive.google.com/.test(url.host) || url.pathname.startsWith("/gdrive");
+            // Need a better way to test paths
+            return /drive.google.com/.test(url.host) || url.pathname.includes("/gdrive");
         }
     }
 }));
