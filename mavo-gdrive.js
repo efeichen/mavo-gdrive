@@ -100,7 +100,7 @@ var _ = Mavo.Backend.register($.Class({
             });
     },
 
-    oAuthParams: () => `&scope=https://www.googleapis.com/auth/drive&redirect_uri=${encodeURIComponent("http://auth.mavo.io")}&response_type=code`,
+    oAuthParams: () => `&scope=https://www.googleapis.com/auth/drive&redirect_uri=${encodeURIComponent("https://auth.mavo.io")}&response_type=code`,
 
     // Set the storage file and its path
     setStorage: async function() {
