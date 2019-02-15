@@ -17,8 +17,6 @@ var _ = Mavo.Backend.register($.Class({
 
     update: function(url, o) {
         this.super.update.call(this, url, o);
-
-        this.info = this.parseSource(this.source);
     },
 
     get: function() {
