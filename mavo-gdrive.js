@@ -195,12 +195,15 @@ var _ = Mavo.Backend.register($.Class({
 
     // Extract information from mv-storage/init/source to init this.info
     parseSource: function(url) {
-        var arr = url.split("/");
+        var arr = url.split("://");
 
         if (url.startsWith("gdrive")) {
+            // Parse name of storage file. If extension not found, add it.
             var name = arr[arr.length-1].indexOf(this.extension) !== -1 ? arr.pop() : `${this.mavo.id}${this.extension}`;
             arr.shift();
+            // Parse names of storage file's ancestor folders
             var ancestorNames = arr.filter(n => n !== "");
+
             return {
                 name: name,
                 ancestorNames: ancestorNames
@@ -222,7 +225,7 @@ var _ = Mavo.Backend.register($.Class({
         test: function (url) {
             url = new URL(url, Mavo.base);
             // Need a better way to test paths
-            return /drive.google.com/.test(url.host) || url.pathname.includes("/gdrive");
+            return /drive.google.com/.test(url.host) || url.href.startsWith("gdrive://");
         }
     }
 }));
