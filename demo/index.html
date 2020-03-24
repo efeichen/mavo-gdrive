@@ -2,35 +2,38 @@
 
 <!DOCTYPE html>
 <html lang="en" data-files="Marker-Felt.woff img/wood.png">
+  <head>
+    <meta charset="UTF-8" />
+    <title>To-Do List</title>
+    <script src="https://get.mavo.io/mavo.js"></script>
+    <link rel="stylesheet" href="https://get.mavo.io/mavo.css" />
+    <script src="../mavo-gdrive.js"></script>
+    <link rel="stylesheet" href="style.css" />
+  </head>
 
-<head>
+  <body
+    mv-app="todo"
+    mv-storage="gdrive://Mavo Demo/demo.json"
+    class="mv-autoedit"
+  >
+    <header>
+      <h1>My tasks</h1>
+      <p>
+        <strong>[count(done)]</strong> done out of
+        <strong>[count(task)]</strong> total
+      </p>
+    </header>
 
-	<meta charset="UTF-8">
-	<title>To-Do List</title>
-	<link rel="stylesheet" href="https://dev.mavo.io/dist/mavo.css">
-	<script src="https://dev.mavo.io/dist/mavo.js"></script>
-	<script src="../mavo-gdrive.js"></script>
-	<link rel="stylesheet" href="style.css">
-
-</head>
-
-<body mv-app="todo" mv-storage="gdrive/Mavo Demo/demo.json" class="mv-autoedit">
-
-	<header>
-		<h1>My tasks</h1>
-		<p><strong>[count(done)]</strong> done out of <strong>[count(task)]</strong> total</p>
-	</header>
-
-	<ul>
-		<li property="task" mv-multiple>
-			<label>
-				<input property="done" type="checkbox" />
-				<span property="taskTitle">Do stuff</span>
-			</label>
-		</li>
-		<button class="clear-completed" mv-action="delete(task where done)">Clear Completed</button>
-	</ul>
-
-</body>
-
+    <ul>
+      <li property="task" mv-multiple>
+        <label>
+          <input property="done" type="checkbox" />
+          <span property="taskTitle">Do stuff</span>
+        </label>
+      </li>
+      <button class="clear-completed" mv-action="delete(task where done)">
+        Clear Completed
+      </button>
+    </ul>
+  </body>
 </html>
