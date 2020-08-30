@@ -11,7 +11,7 @@ var _ = Mavo.Backend.register($.Class({
         this.extension = this.format.constructor.extensions[0] || ".json";
         this.fileFields = "name, id, mimeType, parents, capabilities";
         this.info = this.parseSource(this.source);
-        
+
         this.login(true);
     },
 
@@ -19,14 +19,17 @@ var _ = Mavo.Backend.register($.Class({
         this.super.update.call(this, url, o);
     },
 
+    /**
+     * Read data from storage file
+     */
     get: function() {
+        // optained file ID but logged in: storage file is public
         if (this.info.id && !this.user) {
             return $.fetch(`https://cors-anywhere.herokuapp.com/https://drive.google.com/uc?id=${this.info.id}&export=download`)
                 .then(resp => resp.responseText);
         }
-        else {
-            return this.request(`drive/v3/files/${this.info.id}`, {alt: "media"})
-                .catch(() => console.warn("Can't access storage file before logging in."));
+        else if (this.user) {
+            return this.request(`drive/v3/files/${this.info.id}`, {alt: "media"});
         }
     },
 
@@ -62,6 +65,9 @@ var _ = Mavo.Backend.register($.Class({
     },
 
     upload: function(content, path) {
+        // BUG: Replace media on one property should delete previous media file before uploading new one
+        // BUG: Manually trashing media file in folder still makes them accessible (storage file contains their export URL)
+        
         var pathInfo = path.split("/");
         var foldername = pathInfo[0];
         var uploadname = pathInfo[pathInfo.length-1];
@@ -117,7 +123,7 @@ var _ = Mavo.Backend.register($.Class({
 
             parentId = info.id;
         }
-        
+
         return this.request("drive/v3/files", {q: `name='${this.info.name}' and trashed=false and '${parentId}' in parents`, fields: `files(${this.fileFields})`})
             .then(result => {
                 if (result.files.length === 0) {
@@ -148,7 +154,7 @@ var _ = Mavo.Backend.register($.Class({
         if (this.user) {
             return Promise.resolve(this.user);
         }
-        
+
         return this.request("drive/v3/about", {fields: "user"})
             .then(info => {
                 this.user = {
@@ -191,27 +197,36 @@ var _ = Mavo.Backend.register($.Class({
         return this.oAuthLogout();
     },
 
-    // Extract information from mv-storage/init/source to init this.info
+    /**
+     * Extract information from mv-storage/init/source to init this.info
+     * 
+     * @param {String} url Value passed in mv-storage/init/source attribute
+     */
     parseSource: function(url) {
-        var arr = url.split("://");
+        let routes = url.split("://");
 
-        if (url.startsWith("gdrive")) {
-            // Parse name of storage file. If extension not found, add it.
-            var name = arr[arr.length-1].indexOf(this.extension) !== -1 ? arr.pop() : `${this.mavo.id}${this.extension}`;
-            arr.shift();
-            // Parse names of storage file's ancestor folders
-            var ancestorNames = arr.filter(n => n !== "");
+        // determine whether app uses file path or shareable link to get storage file
+        if (url.startsWith("gdrive://")) {
+            routes = routes[1].split("/");      // routes becomes path to storage file
+            
+            // parse name of storage file; if name not specified, default to app id + extension
+            const fileName = routes[routes.length - 1].indexOf(this.extension) !== -1 ?
+                routes.pop() :
+                `${this.mavo.id}${this.extension}`;
+
+            // parse names of storage file's ancestor folders
+            const ancestorNames = routes.filter(n => n !== "");
 
             return {
-                name: name,
+                name: fileName,
                 ancestorNames: ancestorNames
             };
         }
         else {
-            var from = "/d/";
-            var to = "/";
+            routes = routes[1].split("/");
+
             return {
-                id: url.substring(url.indexOf(from) + from.length, url.lastIndexOf(to))
+                id: routes[routes.length - 2]   // extract file ID from shared URL
             };
         }
     },
@@ -222,10 +237,10 @@ var _ = Mavo.Backend.register($.Class({
 
         test: function (url) {
             url = new URL(url, Mavo.base);
-            // Need a better way to test paths
+
             return /drive.google.com/.test(url.host) || url.href.startsWith("gdrive://");
         }
     }
 }));
-    
+
 })(Bliss, Bliss.$);
