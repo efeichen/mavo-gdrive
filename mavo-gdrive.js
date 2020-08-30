@@ -34,9 +34,8 @@
         },
 
         put: function (serialized, id = this.info.id, o = {}) {
-            console.log("puttign shiz")
-            var meta = JSON.stringify(o.meta || { name: this.info.name });
-            var initRequest;
+            let meta = JSON.stringify(o.meta || { name: this.info.name });
+            let initRequest;
 
             if (id === null) {
                 initRequest = $.fetch(`${_.apiDomain}upload/drive/v3/files?uploadType=resumable`, {
@@ -61,11 +60,17 @@
 
             return initRequest
                 .then(resp => this.request(`${resp.getResponseHeader("location")}&fields=*`, serialized, "PUT"))
-                .then(info => this.request(`drive/v3/files/${info.id}`, { fields: "webContentLink" }))
-                .then(info => info.webContentLink);
+                .then(info => $.fetch(`${_.apiDomain}drive/v3/files/${info.id}?alt=media`, {
+                    headers: {
+                        "Authorization": `Bearer ${this.accessToken}`,
+                    },
+                    responseType: "blob"
+                }))
+                .then(xhr => Mavo.readFile(xhr.response))
+                .then(dataURL => dataURL)
         },
 
-        upload: function (content, path) {
+        upload: function (file, path = this.path) {
             // BUG: Replace media on one property should delete previous media file before uploading new one
             // BUG: Manually trashing media file in folder still makes them accessible (storage file contains their export URL)
 
@@ -80,7 +85,7 @@
                     if (result.files.length === 0) {
                         // If no folder found, create one and put file in there.
                         return this.request("drive/v3/files", { name: foldername, mimeType: "application/vnd.google-apps.folder", parents: [this.info.parents[0]] }, "POST")
-                            .then(folder => this.put(content, null, {
+                            .then(folder => this.put(file, null, {
                                 meta: {
                                     name: uploadname,
                                     parents: [folder.id]
@@ -97,7 +102,7 @@
                                 };
                                 meta[fileExists ? "addParents" : "parents"] = fileExists ? folderId : [folderId];
 
-                                return this.put(content, fileExists ? result.files[0].id : null, {
+                                return this.put(file, fileExists ? result.files[0].id : null, {
                                     meta: meta
                                 });
                             });
